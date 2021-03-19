@@ -27,3 +27,28 @@ jobs:
         token: '${{ secrets.GITHUB_TOKEN }}'
         branch: gh-pages
         folder: build/web
+
+  apk_build_and_deploy:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2.3.1
+    - uses: actions/setup-java@v1
+      with:
+        java-version: '12.x'
+    - uses: subosito/flutter-action@v1.4.0
+      with:
+        flutter-version: '2.0.2'
+        channel: 'stable'
+    - name: "APK Build 🔧"
+      run: | 
+        flutter pub get
+        flutter build apk --debug --target-platform android-arm,android-arm64 --split-per-abi
+      # flutter build appbundle --target-platform android-arm,android-arm64
+
+    # This action will create a github release and optionally upload an artifact to it.
+    # https://github.com/ncipollo/release-action
+    - name: "APK Release 🚀"
+      uses: ncipollo/release-action@v1
+      with:
+        artifacts: "build/app/outputs/apk/debug/*.apk"
+        token: ${{ secrets.GITHUB_TOKEN }}
