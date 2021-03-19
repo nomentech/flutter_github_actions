@@ -88,5 +88,5 @@ jobs:
     - name: "Release 🚀"
       uses: ncipollo/release-action@v1
       with:
-        artifacts: "*.apk, Runner.app"
+        artifacts: "apk-build/*.apk, ios-build/Runner.app"
         token: ${{ secrets.GITHUB_TOKEN }}
