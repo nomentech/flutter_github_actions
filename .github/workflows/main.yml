@@ -66,7 +66,7 @@ jobs:
     - name: "IOS Build 🔧"
       run: | 
         flutter pub get
-        flutter build ipa --release --no-codesign
+        flutter build ios --release --no-codesign
     - name: "Upload IPA"
       uses: actions/upload-artifact@master
       with:
@@ -80,6 +80,8 @@ jobs:
     steps:
     - name: "Download Artifact"
       uses: actions/download-artifact@master
+    - name: Display structure of downloaded files
+      run: ls -al
     - name: Display structure of downloaded files
       run: ls -R    
 
