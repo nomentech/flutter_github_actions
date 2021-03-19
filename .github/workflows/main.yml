@@ -47,7 +47,7 @@ jobs:
         flutter pub get
         flutter build apk --debug --target-platform android-arm,android-arm64 --split-per-abi
       # flutter build appbundle --release --target-platform android-arm,android-arm64
-      - name: "Upload APK"
+    - name: "Upload APK"
       uses: actions/upload-artifact@master
       with:
         name: apk-build
