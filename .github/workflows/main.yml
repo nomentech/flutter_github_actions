@@ -30,65 +30,35 @@ jobs:
         branch: gh-pages
         folder: build/web
 
-  apk_build:
+  app_build_and_release:
+    # build app and release only on tag push
     if: ${{ startsWith(github.ref, 'refs/tags/') }}
-    runs-on: ubuntu-latest
+    runs-on: macos-latest
     steps:
-    - uses: actions/checkout@v2.3.1
-    - uses: actions/setup-java@v1
+      uses: actions/checkout@v2.3.1
+      uses: actions/setup-java@v1
       with:
-        java-version: '12.x'
-    - uses: subosito/flutter-action@v1.4.0
+        java-version: "12.x"
+      uses: subosito/flutter-action@v1
       with:
         flutter-version: '2.0.2'
-        channel: 'stable'
-    - name: "APK Build 🔧"
-      run: | 
-        flutter pub get
-        flutter build apk --debug --target-platform android-arm,android-arm64 --split-per-abi
-      # flutter build appbundle --release --target-platform android-arm,android-arm64
-    - name: "Upload APK"
-      uses: actions/upload-artifact@master
-      with:
-        name: apk-build
-        path: build/app/outputs/apk/debug
-        # path: build/app/outputs/apk/release
-
-  ios_build:
-    if: ${{ startsWith(github.ref, 'refs/tags/') }}
-    runs-on: macOS-latest
-    steps:
-    - uses: actions/checkout@v2.3.1
-    - uses: subosito/flutter-action@v1.4.0
-      with:
-        flutter-version: '2.0.2'
-        channel: 'stable'
-    - name: "IOS Build 🔧"
-      run: | 
-        flutter pub get
+        channel: "stable"
+      run: flutter pub get
+    - name: Build Android App
+      run: flutter build apk --debug --target-platform android-arm,android-arm64 --split-per-abi
+    - name: Build iOS App
+      run: |
         flutter build ios --release --no-codesign
-    - name: "Upload IPA"
-      uses: actions/upload-artifact@master
-      with:
-        name: ios-build
-        path: build/ios/iphoneos  
-
-  release:
-    if: ${{ startsWith(github.ref, 'refs/tags/') }}
-    needs: [apk_build, ios_build]
-    runs-on: ubuntu-latest
-    steps:
-    - name: "Download Artifact"
-      uses: actions/download-artifact@master
-    - name: Display structure of downloaded files
-      run: ls -al
-    - name: Display structure of downloaded files
-      run: ls -R    
-
-    # This action will create a github release and optionally upload an artifact to it.
-    # https://github.com/ncipollo/release-action
-    - name: "Release 🚀"
+        cd build/ios/iphoneos
+        mkdir Payload
+        cd Payload
+        ln -s ../Runner.app
+        cd ..
+        zip -r app.ipa Payload
+    - name: Release Apps
       uses: ncipollo/release-action@v1
       with:
-        artifacts: "apk-build/*.apk, ios-build/Runner.app"
+        # tag: ${{ env.APP_VERSION }}
+        # name: ${{ env.APP_VERSION }}
         token: ${{ secrets.GITHUB_TOKEN }}
+        artifacts: "build/app/outputs/apk/debug/*.apk,build/ios/iphoneos/app.ipa"
