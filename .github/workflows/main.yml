@@ -30,7 +30,7 @@ jobs:
         branch: gh-pages
         folder: build/web
 
-  apk_build_and_release:
+  apk_build:
     if: ${{ startsWith(github.ref, 'refs/tags/') }}
     runs-on: ubuntu-latest
     steps:
@@ -48,16 +48,7 @@ jobs:
         flutter build apk --debug --target-platform android-arm,android-arm64 --split-per-abi
       # flutter build appbundle --release --target-platform android-arm,android-arm64
 
-    # This action will create a github release and optionally upload an artifact to it.
-    # https://github.com/ncipollo/release-action
-    - name: "APK Release 🚀"
-      uses: ncipollo/release-action@v1
-      with:
-        artifacts: "build/app/outputs/apk/debug/*.apk"
-        # artifacts: "build/app/outputs/apk/release/*.apk"
-        token: ${{ secrets.GITHUB_TOKEN }}
-
-  ios_build_and_release:
+  ios_build:
     if: ${{ startsWith(github.ref, 'refs/tags/') }}
     runs-on: macOS-latest
     steps:
@@ -71,10 +62,15 @@ jobs:
         flutter pub get
         flutter build ios --release --no-codesign
 
+  release:
+    if: ${{ startsWith(github.ref, 'refs/tags/') }}
+    needs: [apk_build, ios_build]
+    runs-on: ubuntu-latest
+    steps:
     # This action will create a github release and optionally upload an artifact to it.
     # https://github.com/ncipollo/release-action
-    - name: "IOS Release 🚀"
+    - name: "Release 🚀"
       uses: ncipollo/release-action@v1
       with:
-        artifacts: "build/ios/iphoneos/Runner.app"
+        artifacts: "build/app/outputs/apk/debug/*.apk", "build/ios/iphoneos/Runner.app"
         token: ${{ secrets.GITHUB_TOKEN }}
